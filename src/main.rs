@@ -1,3 +1,5 @@
+mod dumb;
+
 use color_eyre::Report;
 use reqwest::Client;
 use tracing::info;
@@ -10,11 +12,11 @@ pub const URL_2: &str = "https://fasterthanli.me/series/advent-of-code-2020/part
 async fn main() -> Result<(), Report> {
     setup()?;
 
-    info!("Hello from a comfy nest we've made for ourselves");
-
-    let client = Client::new();
-    fetch_thing(&client, URL_1).await?;
-    fetch_thing(&client, URL_2).await?;
+    info!("Building that dumb future...");
+    let fut = dumb::DumbFuture {};
+    info!("Awaiting that dumb future...");
+    fut.await;
+    info!("Done awaiting that dumb future");
 
     Ok(())
 }
@@ -29,7 +31,7 @@ fn setup() -> Result<(), Report> {
         std::env::set_var("RUST_LOG", "info")
     }
     tracing_subscriber::fmt::fmt()
-        .json()
+        //.json()
         .with_env_filter(EnvFilter::from_default_env())
         .init();
 
