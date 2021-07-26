@@ -1,5 +1,3 @@
-mod dumb;
-
 use color_eyre::Report;
 use reqwest::Client;
 use tracing::info;
@@ -12,10 +10,11 @@ pub const URL_2: &str = "https://fasterthanli.me/series/advent-of-code-2020/part
 async fn main() -> Result<(), Report> {
     setup()?;
 
-    info!("Building that dumb future...");
-    let fut = dumb::DumbFuture {};
+    info!("Building that fetch future...");
+    let client = Client::new();
+    let fut = fetch_thing(&client, URL_1);
     info!("Awaiting that dumb future...");
-    fut.await;
+    fut.await?;
     info!("Done awaiting that dumb future");
 
     Ok(())
