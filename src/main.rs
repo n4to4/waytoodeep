@@ -1,5 +1,7 @@
 use color_eyre::Report;
 use reqwest::Client;
+use std::time::Duration;
+use tokio::time::sleep;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
 
@@ -13,9 +15,11 @@ async fn main() -> Result<(), Report> {
     info!("Building that fetch future...");
     let client = Client::new();
     let fut = fetch_thing(&client, URL_1);
-    info!("Awaiting that dumb future...");
+    info!("Sleeping for a bit...");
+    sleep(Duration::from_secs(1)).await;
+    info!("Awaiting that fetch future...");
     fut.await?;
-    info!("Done awaiting that dumb future");
+    info!("Done awaiting that fetch future");
 
     Ok(())
 }
@@ -35,6 +39,10 @@ fn setup() -> Result<(), Report> {
         .init();
 
     Ok(())
+}
+
+fn type_name_of<T>(_: &T) -> &'static str {
+    std::any::type_name::<T>()
 }
 
 async fn fetch_thing(client: &Client, url: &str) -> Result<(), Report> {
