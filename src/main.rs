@@ -1,7 +1,5 @@
 use color_eyre::Report;
 use reqwest::Client;
-use std::time::Duration;
-use tokio::time::sleep;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
 
@@ -12,14 +10,16 @@ pub const URL_2: &str = "https://fasterthanli.me/series/advent-of-code-2020/part
 async fn main() -> Result<(), Report> {
     setup()?;
 
-    info!("Building that fetch future...");
     let client = Client::new();
-    let fut = fetch_thing(&client, URL_1);
-    info!("Sleeping for a bit...");
-    sleep(Duration::from_secs(1)).await;
-    info!("Awaiting that fetch future...");
-    fut.await?;
-    info!("Done awaiting that fetch future");
+
+    let fut1 = fetch_thing(client.clone(), URL_1);
+    let fut2 = fetch_thing(client, URL_2);
+
+    let handle1 = tokio::spawn(fut1);
+    let handle2 = tokio::spawn(fut2);
+
+    handle1.await.unwrap()?;
+    handle2.await.unwrap()?;
 
     Ok(())
 }
@@ -41,11 +41,7 @@ fn setup() -> Result<(), Report> {
     Ok(())
 }
 
-fn type_name_of<T>(_: &T) -> &'static str {
-    std::any::type_name::<T>()
-}
-
-async fn fetch_thing(client: &Client, url: &str) -> Result<(), Report> {
+async fn fetch_thing(client: Client, url: &str) -> Result<(), Report> {
     let res = client.get(url).send().await?.error_for_status()?;
     info!(%url, content_type = ?res.headers().get("content-type"), "Got a response!");
     Ok(())
