@@ -1,4 +1,5 @@
 use color_eyre::Report;
+use futures::{stream::FuturesUnordered, StreamExt};
 use reqwest::Client;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
@@ -12,14 +13,16 @@ async fn main() -> Result<(), Report> {
 
     let client = Client::new();
 
-    let fut1 = fetch_thing(client.clone(), URL_1);
-    let fut2 = fetch_thing(client, URL_2);
+    let mut group = vec![
+        fetch_thing(client.clone(), URL_1),
+        fetch_thing(client, URL_2),
+    ]
+    .into_iter()
+    .collect::<FuturesUnordered<_>>();
 
-    let handle1 = tokio::spawn(fut1);
-    let handle2 = tokio::spawn(fut2);
-
-    handle1.await.unwrap()?;
-    handle2.await.unwrap()?;
+    while let Some(item) = group.next().await {
+        item?;
+    }
 
     Ok(())
 }
